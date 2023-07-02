@@ -13,7 +13,15 @@ app.use(express.json());
 //  CONNECTION
 dotenv.config();
 const mongoClient = new MongoClient(process.env.DATABASE_URL);
-const db = mongoClient.db(); 
+
+try {
+	await mongoClient.connect() // top level await
+	console.log("MongoDB conectado!")
+} catch (err) {
+	(err) => console.log(err.message)
+}
+
+const db = mongoClient.db()
 
 
 // SCHEMES
@@ -64,4 +72,4 @@ app.post ("/participants", async (req, res) =>{
     catch(e){console.log(e.message)}
 })
 
-
+app.listen(5000, () => {console.log("Server is running on port 5000")});
