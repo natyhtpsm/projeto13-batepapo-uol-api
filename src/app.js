@@ -61,5 +61,7 @@ app.post ("/participants", async (req, res) =>{
     
         return res.sendStatus(201);
     }
-    catch{console.log(err.message)}
+    catch(e){console.log(e.message)}
 })
+
+
