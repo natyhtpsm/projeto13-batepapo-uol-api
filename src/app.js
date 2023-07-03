@@ -30,14 +30,16 @@ const schemaNome = Joi.object({
 const schemaMensagem = Joi.object({
     to: Joi.string().required().min(2),
     text: Joi.string().required().min(2),
-    type: Joi.string().valid('message', 'private_message'),
+    type: Joi.string().valid('message', 'private_message').required(),
     from: Joi.string().required()
 })
 
 app.post ("/participants", async (req, res) =>{
     const {name} = req.body;
     const validation = schemaNome.validate({name});
-
+    if (!name) {
+        return res.sendStatus(401);
+    }
     if(!validation){
         return res.sendStatus(422);
     }
@@ -54,7 +56,7 @@ app.post ("/participants", async (req, res) =>{
             to: 'Todos',
             text: 'entra na sala...',
             type: 'status',
-            time: Date.now()});
+            time: Date.now().toString()});
         return res.sendStatus(201);
     }
     catch(e){console.log(e.message)}
@@ -73,7 +75,7 @@ app.post("/messages", async (req, res) =>{
             return res.sendStatus(422);
         }
         let message = {from: user, to, text, type, time: dayjs().format('HH:mm:ss')};
-        await db.collection("messages").insertOne(message);
+        await db.collection("messages").insertOne(message).toArray();
         return res.sendStatus(201);
     }catch(e){
         return res.send(e.message);
@@ -82,7 +84,7 @@ app.post("/messages", async (req, res) =>{
 
 app.get("/participants", async (req, res) => {
     try{
-        const participants = await db.collection('participants').find().toArray();
+        const participants = await db.collection('participants').find();
         if(!participants){
             return res.send([]).status(200);
         }
