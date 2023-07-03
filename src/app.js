@@ -10,12 +10,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-//  CONNECTION
 dotenv.config();
 const mongoClient = new MongoClient(process.env.DATABASE_URL);
 
 try {
-	await mongoClient.connect() // top level await
+	await mongoClient.connect() 
 	console.log("MongoDB conectado!")
 } catch (err) {
 	(err) => console.log(err.message)
@@ -36,15 +35,6 @@ const schemaMensagem = Joi.object({
     time: Joi.string().required()
 })
 
-
-// participante = {name: 'João', lastStatus: 12313123} // O conteúdo do lastStatus será explicado nos próximos requisitos
-// mensagem = {from: 'João', to: 'Todos', text: 'oi galera', type: 'message', time: '20:04:37'}
-
-//POST/participants
-
-// - [ ]  Por fim, em caso de sucesso, retornar **status 201**. Não é necessário retornar nenhuma mensagem além do status.
-
-// ROUTES
 app.post ("/participants", async (req, res) =>{
     const name = req.body;
     const validation = schemaNome.validate({name});
@@ -71,5 +61,22 @@ app.post ("/participants", async (req, res) =>{
     }
     catch(e){console.log(e.message)}
 })
+
+app.post("/messages", async (req, res) =>{
+    const {to, text, type} = req.body;
+    const {user} = req.headers;
+    const validation = schemaMensagem.validate({to, text, type, from: user});
+    if (validation.error){
+        res.status(422).send("Mensagem inválida");
+        return;
+    }
+    try{
+        let message = {from: user, to, text, type, time: dayjs().format('HH:mm:ss')};
+        await mongoData.collection("messages").insertOne(message);
+        res.status(201).send(201);
+    }catch{
+        res.send("Erro no servidor");
+    }
+});
 
 app.listen(5000, () => {console.log("Server is running on port 5000")});
