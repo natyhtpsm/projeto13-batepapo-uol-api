@@ -72,7 +72,7 @@ app.post("/messages", async (req, res) =>{
     }
     try{
         let message = {from: user, to, text, type, time: dayjs().format('HH:mm:ss')};
-        await mongoData.collection("messages").insertOne(message);
+        await db.collection("messages").insertOne(message);
         res.status(201).send(201);
     }catch{
         res.send("Erro no servidor");
