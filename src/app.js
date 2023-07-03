@@ -37,10 +37,11 @@ const schemaMensagem = Joi.object({
 app.post ("/participants", async (req, res) =>{
     const {name} = req.body;
     const validation = schemaNome.validate({name});
+    console.log('VALIDATION: ', validation);
     if (!name) {
         return res.sendStatus(422);
     }
-    if(!validation){
+    if(!validation || !isNaN(name)){
         return res.sendStatus(422);
     }
     try{
@@ -61,6 +62,7 @@ app.post ("/participants", async (req, res) =>{
     }
     catch(e){console.log(e.message)}
 })
+
 
 app.post("/messages", async (req, res) =>{
     const {to, text, type} = req.body;
@@ -143,9 +145,9 @@ setInterval(async() => {
     try{
         const participants = await db.collection('participants').find().toArray();
         for(let i=0; i<participants.length; i++){
-            if(Date.now() - participants.lastStatus > 10000){
-                await db.collection('participants').deleteOne({name: i.name});
-                let message = {from: i.name, to: 'Todos', text: 'sai da sala...', type: 'status', 
+            if(Date.now() - participants[i].lastStatus > 10000){
+                await db.collection('participants').deleteOne({name: participants[i].name});
+                let message = {from: participants[i].name, to: 'Todos', text: 'sai da sala...', type: 'status', 
                 time: dayjs().format('HH:mm:ss')};
                 await db.collection('messages').insertOne(message);
             }
@@ -154,8 +156,6 @@ setInterval(async() => {
     catch(e){
         console.log(e.message);
     }
-
-
 } , 15000);
 
 app.listen(5000, () => {console.log("Server is running on port 5000")});
