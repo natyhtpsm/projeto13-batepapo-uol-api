@@ -38,7 +38,7 @@ app.post ("/participants", async (req, res) =>{
     const {name} = req.body;
     const validation = schemaNome.validate({name});
     if (!name) {
-        return res.sendStatus(401);
+        return res.sendStatus(422);
     }
     if(!validation){
         return res.sendStatus(422);
@@ -50,13 +50,13 @@ app.post ("/participants", async (req, res) =>{
         }
         await db.collection('participants').insertOne({
             name: name,
-            lastStatus: Date.now()});
+            lastStatus: dayjs().format('HH:mm:ss').toString()});
         await db.collection('messages').insertOne({
             from: name,
             to: 'Todos',
             text: 'entra na sala...',
             type: 'status',
-            time: Date.now().toString()});
+            time: dayjs().format('HH:mm:ss').toString()});
         return res.sendStatus(201);
     }
     catch(e){console.log(e.message)}
@@ -117,12 +117,6 @@ app.get("/messages", async (req, res) => {
     }
 });
 
-// - [ ]  Deve receber por um **header** na requisição, chamado `User`, contendo o nome do participante a ser atualizado.
-// - [ ]  Caso este header não seja passado, retorne o **status 404**.
-// - [ ]  Caso este participante não conste na lista de participantes, deve ser retornado um **status 404.** Nenhuma mensagem precisa ser retornada além do status.
-// - [ ]  Atualizar o atributo **lastStatus** do participante informado para o timestamp atual, utilizando `Date.now()`.
-// - [ ]  Por fim, em caso de sucesso, retornar **status 200.**
-
 app.post("/status", async (req, res) => {
     const {user} = req.headers;
 
@@ -146,5 +140,23 @@ app.post("/status", async (req, res) => {
     
 })
 
+setInterval(async() => {
+    try{
+        const participants = await db.collection('participants').find().toArray();
+        for(let i=0; i<participants.length; i++){
+            if(daysjs - participants.lastStatus.secound() > 10){
+                await db.collection('participants').deleteOne({name: i.name});
+                let message = {from: i.name, to: 'Todos', text: 'sai da sala...', type: 'status', 
+                time: dayjs().format('HH:mm:ss')};
+                await db.collection('messages').insertOne(message);
+            }
+        }
+    }
+    catch(e){
+        console.log(e.message);
+    }
+
+
+} , 15000);
 
 app.listen(5000, () => {console.log("Server is running on port 5000")});
