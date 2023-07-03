@@ -117,5 +117,34 @@ app.get("/messages", async (req, res) => {
     }
 });
 
+// - [ ]  Deve receber por um **header** na requisição, chamado `User`, contendo o nome do participante a ser atualizado.
+// - [ ]  Caso este header não seja passado, retorne o **status 404**.
+// - [ ]  Caso este participante não conste na lista de participantes, deve ser retornado um **status 404.** Nenhuma mensagem precisa ser retornada além do status.
+// - [ ]  Atualizar o atributo **lastStatus** do participante informado para o timestamp atual, utilizando `Date.now()`.
+// - [ ]  Por fim, em caso de sucesso, retornar **status 200.**
+
+app.post("/status", async (req, res) => {
+    const {user} = req.headers;
+
+    if(!user){
+        return res.sendStatus(404);
+    }
+    try{
+        const userExist = await db.collection('participants').findOne({name: user});
+        if(!userExist){
+            return res.sendStatus(404);
+        }
+        const update = await db.collection('participants').updateOne({name: user}, {$set: {lastStatus : Date.now()}});
+        console.log('UPDATE: ', update);
+        if(update){
+            return res.sendStatus(200);
+        }
+    }
+    catch(e){
+        console.log(e.message);
+    }
+    
+})
+
 
 app.listen(5000, () => {console.log("Server is running on port 5000")});
