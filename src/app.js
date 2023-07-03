@@ -128,7 +128,7 @@ app.post("/status", async (req, res) => {
         if(!userExist){
             return res.sendStatus(404);
         }
-        const update = await db.collection('participants').updateOne({name: user}, {$set: {lastStatus : daysjs().format('HH:mm:ss')}});
+        const update = await db.collection('participants').updateOne({name: user}, {$set: {lastStatus : Date.now()}});
         if(update){
             return res.sendStatus(200);
         }
