@@ -78,7 +78,7 @@ app.post("/messages", async (req, res) =>{
         }
         let message = {from: user, to, text, type, time: dayjs().format('HH:mm:ss')};
         await db.collection("messages").insertOne(message).toArray();
-        return res.sendStatus(201);
+        return res.status(201).send("OK");
     }catch(e){
         return res.send(e.message);
     }
