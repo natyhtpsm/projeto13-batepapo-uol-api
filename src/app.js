@@ -36,19 +36,21 @@ const schemaMensagem = Joi.object({
 })
 
 app.post ("/participants", async (req, res) =>{
-    const name = req.body;
+    const {name} = req.body;
     const validation = schemaNome.validate({name});
 
     if(!validation){
-        return res.status(422).send("Nome inválido");
+        return res.sendStatus(422);
     }
     try{
-        const nameExists = await db.collection('participants').findOne(name);
+        const nameExists = await db.collection('participants').findOne({name});
+        console.log(nameExists);
         if (nameExists){
-            return res.status(409).send("Usuário já existe");
+            return res.sendStatus(409);
         }
+
         await db.collection('participants').insertOne({
-            nome: name,
+            name: name,
             lastStatus: Date.now()});
         await db.collection('messages').insertOne({
             from: name,
@@ -56,7 +58,6 @@ app.post ("/participants", async (req, res) =>{
             text: 'entra na sala...',
             type: 'status',
             time: Date.now()});
-    
         return res.sendStatus(201);
     }
     catch(e){console.log(e.message)}
