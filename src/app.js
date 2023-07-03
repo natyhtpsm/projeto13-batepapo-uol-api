@@ -93,5 +93,27 @@ app.get("/participants", async (req, res) => {
     }
 });
 
+app.get("/messages", async (req, res) => {
+    const {user} = req.headers;
+    let limit = req.query.limit !== undefined ? parseInt(req.query.limit) : undefined;
+    try{
+        if(limit === undefined){
+            const messages = await db.collection('messages').find({$or: [{ to: user }, { from: user }, { to: 'Todos' }],}).toArray();
+            return res.send(messages).status(200);
+        } 
+            if (isNaN(limit) || limit <= 0) {
+                return res.status(422).send('Valor inválido para o parâmetro limit');
+            }
+            if(limit>0){
+                const messages = await db.collection('messages').find({$or: [{ to: user }, { from: user }, { to: 'Todos' }],}).limit(limit).toArray();
+                return res.send(messages).status(200);
+            }  
+        return res.send([]).status(200);
+    }
+    catch(e){
+        return res.status(500).send(e.message);
+    }
+});
+
 
 app.listen(5000, () => {console.log("Server is running on port 5000")});
