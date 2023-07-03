@@ -86,7 +86,7 @@ app.post("/messages", async (req, res) =>{
 
 app.get("/participants", async (req, res) => {
     try{
-        const participants = await db.collection('participants').find();
+        const participants = await db.collection('participants').find().toArray();
         if(!participants){
             return res.send([]).status(200);
         }
@@ -132,7 +132,7 @@ app.post("/status", async (req, res) => {
         }
         const update = await db.collection('participants').updateOne({name: user}, {$set: {lastStatus : Date.now()}});
         if(update){
-            return res.sendStatus(200);
+            return res.sendStatus(201);
         }
     }
     catch(e){
