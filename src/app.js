@@ -50,7 +50,7 @@ app.post ("/participants", async (req, res) =>{
         }
         await db.collection('participants').insertOne({
             name: name,
-            lastStatus: dayjs().format('HH:mm:ss').toString()});
+            lastStatus: Date.now().toString()});
         await db.collection('messages').insertOne({
             from: name,
             to: 'Todos',
@@ -143,7 +143,7 @@ setInterval(async() => {
     try{
         const participants = await db.collection('participants').find().toArray();
         for(let i=0; i<participants.length; i++){
-            if(daysjs - participants.lastStatus.secound() > 10){
+            if(Date.now() - participants.lastStatus > 10000){
                 await db.collection('participants').deleteOne({name: i.name});
                 let message = {from: i.name, to: 'Todos', text: 'sai da sala...', type: 'status', 
                 time: dayjs().format('HH:mm:ss')};
