@@ -132,7 +132,7 @@ app.post("/status", async (req, res) => {
         }
         const update = await db.collection('participants').updateOne({name: user}, {$set: {lastStatus : Date.now()}});
         if(update){
-            return res.sendStatus(201);
+            return res.sendStatus(200);
         }
     }
     catch(e){
