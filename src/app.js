@@ -25,14 +25,13 @@ const db = mongoClient.db()
 
 // SCHEMES
 const schemaNome = Joi.object({
-    name: Joi.string().required().min(1)
+    name: Joi.string().required().min(2)
 })
 const schemaMensagem = Joi.object({
     to: Joi.string().required().min(1),
     text: Joi.string().required().min(1),
     type: Joi.string().valid('message', 'private_message'),
-    from: Joi.string().required(),
-    time: Joi.string().required()
+    from: Joi.string().required()
 })
 
 app.post ("/participants", async (req, res) =>{
@@ -44,11 +43,9 @@ app.post ("/participants", async (req, res) =>{
     }
     try{
         const nameExists = await db.collection('participants').findOne({name});
-        console.log(nameExists);
         if (nameExists){
             return res.sendStatus(409);
         }
-
         await db.collection('participants').insertOne({
             name: name,
             lastStatus: Date.now()});
@@ -68,16 +65,20 @@ app.post("/messages", async (req, res) =>{
     const {user} = req.headers;
     const validation = schemaMensagem.validate({to, text, type, from: user});
     if (validation.error){
-        res.status(422).send("Mensagem inválida");
-        return;
+        return res.status(422).send("Mensagem inválida");
     }
     try{
+        const userActive = await db.collection('participants').findOne({name: user});
+        if(!userActive){
+            return res.sendStatus(422);
+        }
         let message = {from: user, to, text, type, time: dayjs().format('HH:mm:ss')};
         await db.collection("messages").insertOne(message);
-        res.status(201).send(201);
-    }catch{
-        res.send("Erro no servidor");
+        return res.sendStatus(201);
+    }catch(e){
+        return res.send(e.message);
     }
 });
+
 
 app.listen(5000, () => {console.log("Server is running on port 5000")});
