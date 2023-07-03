@@ -28,8 +28,8 @@ const schemaNome = Joi.object({
     name: Joi.string().required().min(2)
 })
 const schemaMensagem = Joi.object({
-    to: Joi.string().required().min(1),
-    text: Joi.string().required().min(1),
+    to: Joi.string().required().min(2),
+    text: Joi.string().required().min(2),
     type: Joi.string().valid('message', 'private_message'),
     from: Joi.string().required()
 })
@@ -77,6 +77,19 @@ app.post("/messages", async (req, res) =>{
         return res.sendStatus(201);
     }catch(e){
         return res.send(e.message);
+    }
+});
+
+app.get("/participants", async (req, res) => {
+    try{
+        const participants = await db.collection('participants').find().toArray();
+        if(!participants){
+            return res.send([]).status(200);
+        }
+        return res.send(participants).status(200);
+    }
+    catch(e){
+        return res.status(500).send(e.message);
     }
 });
 
